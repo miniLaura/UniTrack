@@ -1,23 +1,36 @@
 import streamlit as st
+import json
+
+with open("data/regras_faculdade.json", "r", encoding="utf-8") as f:
+    regras = json.load(f)
 
 st.set_page_config(page_title="UniTrack", layout="centered")
 
 st.title("🎓 UniTrack - Controle de Faltas Acadêmicas")
 
-# Dados do aluno
+
 st.header("👤 Dados do Aluno")
 nome = st.text_input("Nome do aluno")
 curso = st.text_input("Curso")
 periodo = st.text_input("Período")
 
-# Dados da matéria
+
+st.header("🏫 Faculdade")
+
+faculdade = st.selectbox("Selecione sua faculdade", list(regras.keys()))
+
+limite_percentual = regras[faculdade]["limite_faltas"] * 100
+
+st.write(f"📌 Limite de faltas dessa faculdade: {int(limite_percentual)}%")
+
+
 st.header("📘 Cadastro da Matéria")
+
 materia = st.text_input("Nome da matéria")
 professor = st.text_input("Professor")
 total_aulas = st.number_input("Total de aulas", min_value=1, step=1)
-limite_percentual = st.number_input("Limite de faltas (%)", min_value=0, max_value=100, value=25)
 
-# Faltas
+
 st.header("❌ Registro de Faltas")
 faltas = st.number_input("Quantidade de faltas", min_value=0, step=1)
 
