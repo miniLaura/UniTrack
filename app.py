@@ -1,6 +1,7 @@
 import streamlit as st
 import json
 import matplotlib.pyplot as plt
+plt.rcParams['font.family'] = 'Arial'
 
 if "materias" not in st.session_state:
     st.session_state.materias = []
@@ -68,36 +69,33 @@ st.header("📊 Análise Geral")
 if st.session_state.materias:
 
     nomes = [m["materia"] for m in st.session_state.materias]
-    lista_faltas = [m["faltas"] for m in st.session_state.materias]
+    faltas = [m["faltas"] for m in st.session_state.materias]
     limites = [m["limite"] for m in st.session_state.materias]
+    
 
-    fig, ax = plt.subplots()
+    x = range(len(nomes))
 
-    ax.bar(nomes, lista_faltas, label="Faltas")
-    ax.bar(nomes, limites, alpha=0.3, label="Limite")
+    fig, ax = plt.subplots(figsize=(10, 5))
 
-    ax.set_title("Faltas por Matéria")
-    ax.set_ylabel("Quantidade")
+
+    ax.bar(x, faltas, width=0.4, label="Faltas", color="#ff4b4b")
+    ax.bar([i + 0.4 for i in x], limites, width=0.4, label="Limite", color="#4CAF50")
+
+    ax.set_xticks([i + 0.2 for i in x])
+    ax.set_xticklabels(nomes)
+
+    ax.set_title(" Comparação de Faltas por Matéria", fontsize=14, fontweight="bold")
+    ax.set_ylabel("Quantidade de Aulas")
 
     ax.legend()
+
+
+    for i, limite in enumerate(limites):
+        alerta = limite * 0.7
+        ax.axhline(y=alerta, linestyle="--", alpha=0.2)
 
     st.pyplot(fig)
 
 else:
     st.info("Adicione matérias para ver o gráfico.")
 
-
-if st.session_state.materias:
-
-    total_faltas = sum([m["faltas"] for m in st.session_state.materias])
-    total_limite = sum([m["limite"] for m in st.session_state.materias])
-
-    st.subheader("📈 Resumo Geral")
-
-    st.write(f"Total de faltas: {total_faltas}")
-    st.write(f"Limite total: {total_limite}")
-
-    if total_faltas < total_limite:
-        st.success("🟢 Você ainda está dentro do limite geral!")
-    else:
-        st.error("🔴 Você ultrapassou o limite total!")
