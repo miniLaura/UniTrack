@@ -1,6 +1,8 @@
 {
-  "Padrão": { "limite_faltas": 0.25 },
-  "IF": { "limite_faltas": 0.25 },
-  "UFG": { "limite_faltas": 0.25 },
-  "Faculdade X": { "limite_faltas": 0.24 }
+    "Faculdade A": {
+        "limite_faltas": 0.25
+    },
+    "Faculdade B": {
+        "limite_faltas": 0.3
+    }
 }

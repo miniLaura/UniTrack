@@ -1,5 +1,9 @@
 import streamlit as st
 import json
+import matplotlib.pyplot as plt
+
+if "materias" not in st.session_state:
+    st.session_state.materias = []
 
 with open("data/regras_faculdade.json", "r", encoding="utf-8") as f:
     regras = json.load(f)
@@ -24,6 +28,7 @@ limite_percentual = regras[faculdade]["limite_faltas"] * 100
 st.write(f"📌 Limite de faltas dessa faculdade: {int(limite_percentual)}%")
 
 
+
 st.header("📘 Cadastro da Matéria")
 
 materia = st.text_input("Nome da matéria")
@@ -32,28 +37,67 @@ total_aulas = st.number_input("Total de aulas", min_value=1, step=1)
 
 
 st.header("❌ Registro de Faltas")
-faltas = st.number_input("Quantidade de faltas", min_value=0, step=1)
 
-if st.button("Calcular Situação"):
+faltas_input = st.number_input("Quantidade de faltas", min_value=0, step=1)
 
-    limite_faltas = total_aulas * (limite_percentual / 100)
-    restantes = limite_faltas - faltas
 
-    st.subheader("📊 Resultado")
+if st.button("➕ Adicionar Matéria"):
 
-    st.write(f"Aluno: {nome}")
-    st.write(f"Matéria: {materia}")
-    st.write(f"Professor: {professor}")
+    if materia and professor:
 
-    st.write(f"Total de aulas: {total_aulas}")
-    st.write(f"Limite de faltas: {int(limite_faltas)}")
-    st.write(f"Faltas atuais: {faltas}")
+        limite_faltas = total_aulas * (limite_percentual / 100)
 
-    if faltas < limite_faltas * 0.7:
-        st.success("🟢 Situação: Tranquilo")
-    elif faltas < limite_faltas:
-        st.warning("🟡 Atenção! Você está perto do limite.")
+        materia_data = {
+            "materia": materia,
+            "professor": professor,
+            "total_aulas": total_aulas,
+            "faltas": faltas_input,
+            "limite": int(limite_faltas)
+        }
+
+        st.session_state.materias.append(materia_data)
+
+        st.success("✅ Matéria adicionada com sucesso!")
+
     else:
-        st.error("🔴 Reprovado por falta!")
+        st.error("Preencha todos os campos!")
 
-    st.write(f"Você ainda pode faltar: {max(0, int(restantes))}")
+
+st.header("📊 Análise Geral")
+
+if st.session_state.materias:
+
+    nomes = [m["materia"] for m in st.session_state.materias]
+    lista_faltas = [m["faltas"] for m in st.session_state.materias]
+    limites = [m["limite"] for m in st.session_state.materias]
+
+    fig, ax = plt.subplots()
+
+    ax.bar(nomes, lista_faltas, label="Faltas")
+    ax.bar(nomes, limites, alpha=0.3, label="Limite")
+
+    ax.set_title("Faltas por Matéria")
+    ax.set_ylabel("Quantidade")
+
+    ax.legend()
+
+    st.pyplot(fig)
+
+else:
+    st.info("Adicione matérias para ver o gráfico.")
+
+
+if st.session_state.materias:
+
+    total_faltas = sum([m["faltas"] for m in st.session_state.materias])
+    total_limite = sum([m["limite"] for m in st.session_state.materias])
+
+    st.subheader("📈 Resumo Geral")
+
+    st.write(f"Total de faltas: {total_faltas}")
+    st.write(f"Limite total: {total_limite}")
+
+    if total_faltas < total_limite:
+        st.success("🟢 Você ainda está dentro do limite geral!")
+    else:
+        st.error("🔴 Você ultrapassou o limite total!")
