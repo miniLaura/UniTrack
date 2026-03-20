@@ -2,9 +2,17 @@ import streamlit as st
 import json
 import matplotlib.pyplot as plt
 plt.rcParams['font.family'] = 'Arial'
+import os
+
+
+if os.path.exists("data/materias.json"):
+    with open("data/materias.json", "r", encoding="utf-8") as f:
+        materias_salvas = json.load(f)
+else:
+    materias_salvas = []
 
 if "materias" not in st.session_state:
-    st.session_state.materias = []
+    st.session_state.materias = materias_salvas
 
 with open("data/regras_faculdade.json", "r", encoding="utf-8") as f:
     regras = json.load(f)
@@ -58,11 +66,14 @@ if st.button("➕ Adicionar Matéria"):
 
         st.session_state.materias.append(materia_data)
 
-        st.success("✅ Matéria adicionada com sucesso!")
+
+        with open("data/materias.json", "w", encoding="utf-8") as f:
+            json.dump(st.session_state.materias, f, indent=4, ensure_ascii=False)
+
+        st.success("✅ Matéria adicionada e salva!")
 
     else:
         st.error("Preencha todos os campos!")
-
 
 st.header("📊 Análise Geral")
 
@@ -78,10 +89,11 @@ if st.session_state.materias:
     fig, ax = plt.subplots(figsize=(10, 5))
 
 
-    ax.bar(x, faltas, width=0.4, label="Faltas", color="#ff4b4b")
-    ax.bar([i + 0.4 for i in x], limites, width=0.4, label="Limite", color="#4CAF50")
+    ax.bar(x, faltas, width=0.4, label="Faltas")
+    ax.bar([i + 0.4 for i in x], limites, width=0.4, label="Limite")
 
     ax.set_xticks([i + 0.2 for i in x])
+    ax.grid(True, axis='y', linestyle='--', alpha=0.3)
     ax.set_xticklabels(nomes)
 
     ax.set_title(" Comparação de Faltas por Matéria", fontsize=14, fontweight="bold")

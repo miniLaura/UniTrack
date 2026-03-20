@@ -1,0 +1,16 @@
+[
+    {
+        "materia": "Banco de Dados",
+        "professor": "Rogerio",
+        "total_aulas": 25,
+        "faltas": 5,
+        "limite": 6
+    },
+    {
+        "materia": "bdd",
+        "professor": "lola",
+        "total_aulas": 26,
+        "faltas": 4,
+        "limite": 6
+    }
+]
