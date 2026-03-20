@@ -1,21 +1,24 @@
 import streamlit as st
 import json
 import matplotlib.pyplot as plt
-plt.rcParams['font.family'] = 'Arial'
 import os
 
+plt.rcParams['font.family'] = 'Arial'
 
-if os.path.exists("data/materias.json"):
+
+try:
     with open("data/materias.json", "r", encoding="utf-8") as f:
         materias_salvas = json.load(f)
-else:
+except:
     materias_salvas = []
 
 if "materias" not in st.session_state:
     st.session_state.materias = materias_salvas
 
+
 with open("data/regras_faculdade.json", "r", encoding="utf-8") as f:
     regras = json.load(f)
+
 
 st.set_page_config(page_title="UniTrack", layout="centered")
 
@@ -31,12 +34,9 @@ periodo = st.text_input("Período")
 st.header("🏫 Faculdade")
 
 faculdade = st.selectbox("Selecione sua faculdade", list(regras.keys()))
-
 limite_percentual = regras[faculdade]["limite_faltas"] * 100
 
 st.write(f"📌 Limite de faltas dessa faculdade: {int(limite_percentual)}%")
-
-
 
 st.header("📘 Cadastro da Matéria")
 
@@ -75,32 +75,30 @@ if st.button("➕ Adicionar Matéria"):
     else:
         st.error("Preencha todos os campos!")
 
+
 st.header("📊 Análise Geral")
 
 if st.session_state.materias:
 
     nomes = [m["materia"] for m in st.session_state.materias]
-    faltas = [m["faltas"] for m in st.session_state.materias]
+    faltas_lista = [m["faltas"] for m in st.session_state.materias]
     limites = [m["limite"] for m in st.session_state.materias]
-    
 
     x = range(len(nomes))
 
     fig, ax = plt.subplots(figsize=(10, 5))
 
-
-    ax.bar(x, faltas, width=0.4, label="Faltas")
+    ax.bar(x, faltas_lista, width=0.4, label="Faltas")
     ax.bar([i + 0.4 for i in x], limites, width=0.4, label="Limite")
 
     ax.set_xticks([i + 0.2 for i in x])
-    ax.grid(True, axis='y', linestyle='--', alpha=0.3)
     ax.set_xticklabels(nomes)
 
-    ax.set_title(" Comparação de Faltas por Matéria", fontsize=14, fontweight="bold")
+    ax.set_title("Comparação de Faltas por Matéria", fontsize=14, fontweight="bold")
     ax.set_ylabel("Quantidade de Aulas")
 
+    ax.grid(True, axis='y', linestyle='--', alpha=0.3)
     ax.legend()
-
 
     for i, limite in enumerate(limites):
         alerta = limite * 0.7
@@ -108,6 +106,7 @@ if st.session_state.materias:
 
     st.pyplot(fig)
 
+    st.caption("📌 Linhas tracejadas indicam 70% do limite de faltas (zona de alerta)")
+
 else:
     st.info("Adicione matérias para ver o gráfico.")
-

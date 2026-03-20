@@ -12,5 +12,12 @@
         "total_aulas": 26,
         "faltas": 4,
         "limite": 6
+    },
+    {
+        "materia": "bdd",
+        "professor": "Rogerio",
+        "total_aulas": 45,
+        "faltas": 10,
+        "limite": 11
     }
 ]
