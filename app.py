@@ -23,7 +23,7 @@ with open("data/regras_faculdade.json", "r", encoding="utf-8") as f:
 st.set_page_config(page_title="UniTrack", layout="centered")
 
 st.title("🎓 UniTrack - Controle de Faltas Acadêmicas")
-
+st.markdown("---")
 
 st.header("👤 Dados do Aluno")
 nome = st.text_input("Nome do aluno")
@@ -75,38 +75,36 @@ if st.button("➕ Adicionar Matéria"):
     else:
         st.error("Preencha todos os campos!")
 
+if st.button("🗑️ Limpar todas as matérias"):
 
-st.header("📊 Análise Geral")
+    st.session_state.materias = []
+
+    with open("data/materias.json", "w", encoding="utf-8") as f:
+        json.dump([], f)
+
+    st.success("Todas as matérias foram removidas!")
+
+    
+st.markdown("### 📈 Visualização Geral")
+st.header("📚 Suas Matérias")
 
 if st.session_state.materias:
 
-    nomes = [m["materia"] for m in st.session_state.materias]
-    faltas_lista = [m["faltas"] for m in st.session_state.materias]
-    limites = [m["limite"] for m in st.session_state.materias]
+    for i, m in enumerate(st.session_state.materias):
 
-    x = range(len(nomes))
+        col1, col2 = st.columns([4, 1])
 
-    fig, ax = plt.subplots(figsize=(10, 5))
+        with col1:
+            st.subheader(m["materia"])
+            st.write(f"👨‍🏫 Professor: {m['professor']}")
+            st.write(f"📊 Faltas: {m['faltas']} / {m['limite']}")
 
-    ax.bar(x, faltas_lista, width=0.4, label="Faltas")
-    ax.bar([i + 0.4 for i in x], limites, width=0.4, label="Limite")
+        with col2:
+            if st.button("❌", key=f"del_{i}"):
 
-    ax.set_xticks([i + 0.2 for i in x])
-    ax.set_xticklabels(nomes)
+                st.session_state.materias.pop(i)
 
-    ax.set_title("Comparação de Faltas por Matéria", fontsize=14, fontweight="bold")
-    ax.set_ylabel("Quantidade de Aulas")
+                with open("data/materias.json", "w", encoding="utf-8") as f:
+                    json.dump(st.session_state.materias, f, indent=4, ensure_ascii=False)
 
-    ax.grid(True, axis='y', linestyle='--', alpha=0.3)
-    ax.legend()
-
-    for i, limite in enumerate(limites):
-        alerta = limite * 0.7
-        ax.axhline(y=alerta, linestyle="--", alpha=0.2)
-
-    st.pyplot(fig)
-
-    st.caption("📌 Linhas tracejadas indicam 70% do limite de faltas (zona de alerta)")
-
-else:
-    st.info("Adicione matérias para ver o gráfico.")
+                st.rerun()
