@@ -1,3 +1,5 @@
+st.write(os.listdir())
+st.write(os.listdir("data"))
 import streamlit as st
 import json
 import pandas as pd
@@ -14,8 +16,13 @@ if "materias" not in st.session_state:
     st.session_state.materias = materias_salvas
 
 
-with open("data/regras_faculdade.json", "r", encoding="utf-8") as f:
-    regras = json.load(f)
+try:
+    with open("data/regras_faculdade.json", "r", encoding="utf-8") as f:
+        regras = json.load(f)
+except:
+    regras = {
+        "Faculdade Padrão": {"limite_faltas": 0.25}
+    }
 
 
 st.set_page_config(page_title="UniTrack", layout="centered")
