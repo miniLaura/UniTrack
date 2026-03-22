@@ -1,19 +1,8 @@
-from matplotlib import pyplot as plt
+
 import streamlit as st
 import json
 import pandas as pd
 import os
-
-
-df = pd.DataFrame({
-    "Matéria": nome, # type: ignore
-    "Faltas": faltas, # type: ignore
-    "Limite": limites # type: ignore
-})
-
-st.bar_chart(df.set_index("Matéria"))
-
-plt.rcParams['font.family'] = 'DejaVu Sans'
 
 
 try:
@@ -96,6 +85,25 @@ if st.button("🗑️ Limpar todas as matérias"):
 
     
 st.markdown("### 📈 Visualização Geral")
+st.header("📊 Análise")
+
+if st.session_state.materias:
+
+    nomes = [m["materia"] for m in st.session_state.materias]
+    faltas = [m["faltas"] for m in st.session_state.materias]
+    limites = [m["limite"] for m in st.session_state.materias]
+
+    df = pd.DataFrame({
+        "Faltas": faltas,
+        "Limite": limites
+    }, index=nomes)
+
+    st.bar_chart(df)
+
+else:
+    st.info("Adicione matérias para ver o gráfico.")
+
+
 st.header("📚 Suas Matérias")
 
 if st.session_state.materias:
