@@ -1,7 +1,17 @@
+from matplotlib import pyplot as plt
 import streamlit as st
 import json
-import matplotlib.pyplot as plt
+import pandas as pd
 import os
+
+
+df = pd.DataFrame({
+    "Matéria": nome, # type: ignore
+    "Faltas": faltas, # type: ignore
+    "Limite": limites # type: ignore
+})
+
+st.bar_chart(df.set_index("Matéria"))
 
 plt.rcParams['font.family'] = 'DejaVu Sans'
 
