@@ -1,10 +1,16 @@
-st.write(os.listdir())
-st.write(os.listdir("data"))
 import streamlit as st
 import json
 import pandas as pd
 import os
 
+
+# DEBUG (agora sim funciona)
+st.write(os.listdir())
+
+if os.path.exists("data"):
+    st.write(os.listdir("data"))
+else:
+    st.error("Pasta 'data' não encontrada!")
 
 try:
     with open("data/materias.json", "r", encoding="utf-8") as f:
