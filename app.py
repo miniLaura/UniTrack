@@ -1,4 +1,3 @@
-
 import streamlit as st
 import json
 import pandas as pd
@@ -87,18 +86,16 @@ if st.button("🗑️ Limpar todas as matérias"):
 st.markdown("### 📈 Visualização Geral")
 st.header("📊 Análise")
 
+st.markdown("### 📊 Gráfico de Faltas")
+
 if st.session_state.materias:
 
-    nomes = [m["materia"] for m in st.session_state.materias]
-    faltas = [m["faltas"] for m in st.session_state.materias]
-    limites = [m["limite"] for m in st.session_state.materias]
+    df = pd.DataFrame(st.session_state.materias)
 
-    df = pd.DataFrame({
-        "Faltas": faltas,
-        "Limite": limites
-    }, index=nomes)
+    df_plot = df[["materia", "faltas", "limite"]]
+    df_plot = df_plot.set_index("materia")
 
-    st.bar_chart(df)
+    st.bar_chart(df_plot)
 
 else:
     st.info("Adicione matérias para ver o gráfico.")

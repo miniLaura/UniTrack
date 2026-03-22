@@ -1,9 +1,9 @@
 [
     {
-        "materia": "DADOS",
-        "professor": "Laura",
-        "total_aulas": 40,
-        "faltas": 4,
-        "limite": 10
+        "materia": "algebra",
+        "professor": "Darlan",
+        "total_aulas": 20,
+        "faltas": 1,
+        "limite": 5
     }
 ]
