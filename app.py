@@ -3,7 +3,7 @@ import json
 import matplotlib.pyplot as plt
 import os
 
-plt.rcParams['font.family'] = 'Arial'
+plt.rcParams['font.family'] = 'DejaVu Sans'
 
 
 try:
