@@ -1,9 +1,8 @@
 import streamlit as st
 import json
-import matplotlib.pyplot as plt
+import pandas as pd
 import os
 
-plt.rcParams['font.family'] = 'Arial'
 
 
 try:
@@ -15,9 +14,9 @@ except:
 if "materias" not in st.session_state:
     st.session_state.materias = materias_salvas
 
-
 with open("data/regras_faculdade.json", "r", encoding="utf-8") as f:
     regras = json.load(f)
+
 
 
 st.set_page_config(page_title="UniTrack", layout="centered")
@@ -25,10 +24,12 @@ st.set_page_config(page_title="UniTrack", layout="centered")
 st.title("🎓 UniTrack - Controle de Faltas Acadêmicas")
 
 
+
 st.header("👤 Dados do Aluno")
 nome = st.text_input("Nome do aluno")
 curso = st.text_input("Curso")
 periodo = st.text_input("Período")
+
 
 
 st.header("🏫 Faculdade")
@@ -38,11 +39,14 @@ limite_percentual = regras[faculdade]["limite_faltas"] * 100
 
 st.write(f"📌 Limite de faltas dessa faculdade: {int(limite_percentual)}%")
 
+
+
 st.header("📘 Cadastro da Matéria")
 
 materia = st.text_input("Nome da matéria")
 professor = st.text_input("Professor")
 total_aulas = st.number_input("Total de aulas", min_value=1, step=1)
+
 
 
 st.header("❌ Registro de Faltas")
@@ -66,7 +70,6 @@ if st.button("➕ Adicionar Matéria"):
 
         st.session_state.materias.append(materia_data)
 
-
         with open("data/materias.json", "w", encoding="utf-8") as f:
             json.dump(st.session_state.materias, f, indent=4, ensure_ascii=False)
 
@@ -76,37 +79,56 @@ if st.button("➕ Adicionar Matéria"):
         st.error("Preencha todos os campos!")
 
 
-st.header("📊 Análise Geral")
+st.header("📚 Suas Matérias")
 
 if st.session_state.materias:
 
-    nomes = [m["materia"] for m in st.session_state.materias]
-    faltas_lista = [m["faltas"] for m in st.session_state.materias]
-    limites = [m["limite"] for m in st.session_state.materias]
+    for i, m in enumerate(st.session_state.materias):
 
-    x = range(len(nomes))
+        col1, col2 = st.columns([4, 1])
 
-    fig, ax = plt.subplots(figsize=(10, 5))
+        with col1:
+            st.subheader(f"📘 {m['materia']}")
+            st.write(f"👨‍🏫 Professor: {m['professor']}")
+            st.write(f"📊 Faltas: {m['faltas']} / {m['limite']}")
 
-    ax.bar(x, faltas_lista, width=0.4, label="Faltas")
-    ax.bar([i + 0.4 for i in x], limites, width=0.4, label="Limite")
+            faltas = m["faltas"]
+            limite = m["limite"]
+            restantes = limite - faltas
 
-    ax.set_xticks([i + 0.2 for i in x])
-    ax.set_xticklabels(nomes)
+            # ALERTA INTELIGENTE
+            if faltas < limite * 0.7:
+                st.success("🟢 Tranquilo")
+            elif faltas < limite:
+                st.warning("🟡 Atenção! Você está perto do limite.")
+            else:
+                st.error("🔴 Reprovado por falta!")
 
-    ax.set_title("Comparação de Faltas por Matéria", fontsize=14, fontweight="bold")
-    ax.set_ylabel("Quantidade de Aulas")
+            if restantes > 0:
+                st.write(f"📉 Restam {int(restantes)} faltas possíveis")
+            else:
+                st.error("⚠️ Limite atingido!")
 
-    ax.grid(True, axis='y', linestyle='--', alpha=0.3)
-    ax.legend()
+        with col2:
+            if st.button("❌", key=f"del_{i}"):
+                st.session_state.materias.pop(i)
 
-    for i, limite in enumerate(limites):
-        alerta = limite * 0.7
-        ax.axhline(y=alerta, linestyle="--", alpha=0.2)
+                with open("data/materias.json", "w", encoding="utf-8") as f:
+                    json.dump(st.session_state.materias, f, indent=4, ensure_ascii=False)
 
-    st.pyplot(fig)
+                st.rerun()
 
-    st.caption("📌 Linhas tracejadas indicam 70% do limite de faltas (zona de alerta)")
+
+st.markdown("### 📊 Gráfico de Faltas")
+
+if st.session_state.materias:
+
+    df = pd.DataFrame(st.session_state.materias)
+
+    df_plot = df[["materia", "faltas", "limite"]]
+    df_plot = df_plot.set_index("materia")
+
+    st.bar_chart(df_plot)
 
 else:
     st.info("Adicione matérias para ver o gráfico.")
