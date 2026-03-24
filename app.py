@@ -4,14 +4,6 @@ import pandas as pd
 import os
 
 
-# DEBUG (agora sim funciona)
-st.write(os.listdir())
-
-if os.path.exists("data"):
-    st.write(os.listdir("data"))
-else:
-    st.error("Pasta 'data' não encontrada!")
-
 try:
     with open("data/materias.json", "r", encoding="utf-8") as f:
         materias_salvas = json.load(f)
@@ -21,25 +13,19 @@ except:
 if "materias" not in st.session_state:
     st.session_state.materias = materias_salvas
 
-
-try:
-    with open("data/regras_faculdade.json", "r", encoding="utf-8") as f:
-        regras = json.load(f)
-except:
-    regras = {
-        "Faculdade Padrão": {"limite_faltas": 0.25}
-    }
+with open("data/regras_faculdade.json", "r", encoding="utf-8") as f:
+    regras = json.load(f)
 
 
 st.set_page_config(page_title="UniTrack", layout="centered")
 
 st.title("🎓 UniTrack - Controle de Faltas Acadêmicas")
-st.markdown("---")
 
 st.header("👤 Dados do Aluno")
 nome = st.text_input("Nome do aluno")
 curso = st.text_input("Curso")
 periodo = st.text_input("Período")
+
 
 
 st.header("🏫 Faculdade")
@@ -48,6 +34,8 @@ faculdade = st.selectbox("Selecione sua faculdade", list(regras.keys()))
 limite_percentual = regras[faculdade]["limite_faltas"] * 100
 
 st.write(f"📌 Limite de faltas dessa faculdade: {int(limite_percentual)}%")
+
+
 
 st.header("📘 Cadastro da Matéria")
 
@@ -59,6 +47,7 @@ total_aulas = st.number_input("Total de aulas", min_value=1, step=1)
 st.header("❌ Registro de Faltas")
 
 faltas_input = st.number_input("Quantidade de faltas", min_value=0, step=1)
+
 
 
 if st.button("➕ Adicionar Matéria"):
@@ -77,7 +66,6 @@ if st.button("➕ Adicionar Matéria"):
 
         st.session_state.materias.append(materia_data)
 
-
         with open("data/materias.json", "w", encoding="utf-8") as f:
             json.dump(st.session_state.materias, f, indent=4, ensure_ascii=False)
 
@@ -86,18 +74,48 @@ if st.button("➕ Adicionar Matéria"):
     else:
         st.error("Preencha todos os campos!")
 
-if st.button("🗑️ Limpar todas as matérias"):
 
-    st.session_state.materias = []
 
-    with open("data/materias.json", "w", encoding="utf-8") as f:
-        json.dump([], f)
+st.header("📚 Suas Matérias")
 
-    st.success("Todas as matérias foram removidas!")
+if st.session_state.materias:
 
-    
-st.markdown("### 📈 Visualização Geral")
-st.header("📊 Análise")
+    for i, m in enumerate(st.session_state.materias):
+
+        col1, col2 = st.columns([4, 1])
+
+        with col1:
+            st.subheader(f"📘 {m['materia']}")
+            st.write(f"👨‍🏫 Professor: {m['professor']}")
+            st.write(f"📊 Faltas: {m['faltas']} / {m['limite']}")
+
+            faltas = m["faltas"]
+            limite = m["limite"]
+            restantes = limite - faltas
+
+
+            if faltas < limite * 0.7:
+                st.success("🟢 Tranquilo")
+            elif faltas < limite:
+                st.warning("🟡 Atenção! Você está perto do limite.")
+            else:
+                st.error("🔴 Reprovado por falta!")
+
+            if restantes > 0:
+                st.write(f"📉 Restam {int(restantes)} faltas possíveis")
+            else:
+                st.error("⚠️ Limite atingido!")
+
+        with col2:
+            if st.button("❌", key=f"del_{i}"):
+                st.session_state.materias.pop(i)
+
+                with open("data/materias.json", "w", encoding="utf-8") as f:
+                    json.dump(st.session_state.materias, f, indent=4, ensure_ascii=False)
+
+                st.rerun()
+
+
 
 st.markdown("### 📊 Gráfico de Faltas")
 
@@ -112,27 +130,3 @@ if st.session_state.materias:
 
 else:
     st.info("Adicione matérias para ver o gráfico.")
-
-
-st.header("📚 Suas Matérias")
-
-if st.session_state.materias:
-
-    for i, m in enumerate(st.session_state.materias):
-
-        col1, col2 = st.columns([4, 1])
-
-        with col1:
-            st.subheader(m["materia"])
-            st.write(f"👨‍🏫 Professor: {m['professor']}")
-            st.write(f"📊 Faltas: {m['faltas']} / {m['limite']}")
-
-        with col2:
-            if st.button("❌", key=f"del_{i}"):
-
-                st.session_state.materias.pop(i)
-
-                with open("data/materias.json", "w", encoding="utf-8") as f:
-                    json.dump(st.session_state.materias, f, indent=4, ensure_ascii=False)
-
-                st.rerun()
