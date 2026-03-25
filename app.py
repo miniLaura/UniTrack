@@ -3,7 +3,6 @@ import json
 import pandas as pd
 import os
 
-
 try:
     with open("data/materias.json", "r", encoding="utf-8") as f:
         materias_salvas = json.load(f)
@@ -13,13 +12,21 @@ except:
 if "materias" not in st.session_state:
     st.session_state.materias = materias_salvas
 
-with open("data/regras_faculdade.json", "r", encoding="utf-8") as f:
-    regras = json.load(f)
+
+
+if os.path.exists("data/regras_faculdade.json"):
+    with open("data/regras_faculdade.json", "r", encoding="utf-8") as f:
+        regras = json.load(f)
+else:
+    regras = {}
+
 
 
 st.set_page_config(page_title="UniTrack", layout="centered")
 
 st.title("🎓 UniTrack - Controle de Faltas Acadêmicas")
+
+
 
 st.header("👤 Dados do Aluno")
 nome = st.text_input("Nome do aluno")
@@ -28,12 +35,18 @@ periodo = st.text_input("Período")
 
 
 
+
 st.header("🏫 Faculdade")
 
-faculdade = st.selectbox("Selecione sua faculdade", list(regras.keys()))
-limite_percentual = regras[faculdade]["limite_faltas"] * 100
+if regras:
+    faculdade = st.selectbox("Selecione sua faculdade", list(regras.keys()))
+    limite_percentual = regras[faculdade]["limite_faltas"] * 100
+    st.write(f"📌 Limite de faltas: {int(limite_percentual)}%")
+else:
+    st.warning("⚠️ Arquivo de regras não encontrado.")
+    faculdade = None
+    limite_percentual = 25  # padrão
 
-st.write(f"📌 Limite de faltas dessa faculdade: {int(limite_percentual)}%")
 
 
 
@@ -43,16 +56,15 @@ materia = st.text_input("Nome da matéria")
 professor = st.text_input("Professor")
 total_aulas = st.number_input("Total de aulas", min_value=1, step=1)
 
-
 st.header("❌ Registro de Faltas")
-
 faltas_input = st.number_input("Quantidade de faltas", min_value=0, step=1)
+
 
 
 
 if st.button("➕ Adicionar Matéria"):
 
-    if materia and professor:
+    if materia and professor and total_aulas:
 
         limite_faltas = total_aulas * (limite_percentual / 100)
 
@@ -66,13 +78,16 @@ if st.button("➕ Adicionar Matéria"):
 
         st.session_state.materias.append(materia_data)
 
+        os.makedirs("data", exist_ok=True)
+
         with open("data/materias.json", "w", encoding="utf-8") as f:
             json.dump(st.session_state.materias, f, indent=4, ensure_ascii=False)
 
-        st.success("✅ Matéria adicionada e salva!")
+        st.success("✅ Matéria adicionada!")
 
     else:
         st.error("Preencha todos os campos!")
+
 
 
 
@@ -93,14 +108,15 @@ if st.session_state.materias:
             limite = m["limite"]
             restantes = limite - faltas
 
-
+            # STATUS
             if faltas < limite * 0.7:
                 st.success("🟢 Tranquilo")
             elif faltas < limite:
-                st.warning("🟡 Atenção! Você está perto do limite.")
+                st.warning("🟡 Atenção!")
             else:
                 st.error("🔴 Reprovado por falta!")
 
+            # RESTANTE
             if restantes > 0:
                 st.write(f"📉 Restam {int(restantes)} faltas possíveis")
             else:
@@ -115,6 +131,10 @@ if st.session_state.materias:
 
                 st.rerun()
 
+else:
+    st.info("Nenhuma matéria cadastrada.")
+
+
 
 
 st.markdown("### 📊 Gráfico de Faltas")
@@ -123,10 +143,9 @@ if st.session_state.materias:
 
     df = pd.DataFrame(st.session_state.materias)
 
-    df_plot = df[["materia", "faltas", "limite"]]
-    df_plot = df_plot.set_index("materia")
-
-    st.bar_chart(df_plot)
+    if not df.empty:
+        df_plot = df[["materia", "faltas", "limite"]].set_index("materia")
+        st.bar_chart(df_plot)
 
 else:
     st.info("Adicione matérias para ver o gráfico.")
