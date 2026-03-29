@@ -3,6 +3,10 @@ import json
 import pandas as pd
 import os
 
+
+st.markdown("---")
+st.caption("Sistema inteligente de controle de faltas acadêmicas")
+
 try:
     with open("data/materias.json", "r", encoding="utf-8") as f:
         materias_salvas = json.load(f)
