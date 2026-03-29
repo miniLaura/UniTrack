@@ -152,3 +152,6 @@ if st.session_state.materias:
 
 else:
     st.info("Adicione matérias para ver o gráfico.")
+
+st.markdown("---")
+st.caption("Desenvolvido para ajudar estudantes a evitarem reprovação por falta 📚")
