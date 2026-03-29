@@ -17,6 +17,7 @@ except:
 if "materias" not in st.session_state:
     st.session_state.materias = materias_salvas
 
+
 def calcular_limite_faltas(aulas_semana):
     if aulas_semana == 1:
         return 8
@@ -26,6 +27,17 @@ def calcular_limite_faltas(aulas_semana):
         return 18
     else:
         return aulas_semana * 8
+
+def salvar_dados():
+    os.makedirs("data", exist_ok=True)
+    with open("data/materias.json", "w", encoding="utf-8") as f:
+        json.dump(st.session_state.materias, f, indent=4, ensure_ascii=False)
+
+
+def atualizar_falta(index):
+    st.session_state.materias[index]["faltas"] = st.session_state[f"faltas_{index}"]
+    salvar_dados()
+
 
 st.title("🎓 UniTrack - Controle de Faltas Acadêmicas")
 
@@ -61,15 +73,12 @@ if st.button("➕ Adicionar Matéria"):
         }
 
         st.session_state.materias.append(materia_data)
-
-        os.makedirs("data", exist_ok=True)
-
-        with open("data/materias.json", "w", encoding="utf-8") as f:
-            json.dump(st.session_state.materias, f, indent=4, ensure_ascii=False)
+        salvar_dados()
 
         st.success("✅ Matéria adicionada!")
     else:
         st.error("Preencha todos os campos!")
+
 
 if st.session_state.materias:
     total_faltas = sum(m["faltas"] for m in st.session_state.materias)
@@ -79,6 +88,7 @@ if st.session_state.materias:
     col1.metric("Total de faltas", total_faltas)
     col2.metric("Limite total", total_limites)
 
+
 st.header("📚 Suas Matérias")
 
 if st.session_state.materias:
@@ -86,60 +96,60 @@ if st.session_state.materias:
         with st.container(border=True):
             col_top1, col_top2 = st.columns([5,1])
 
-        with col_top1:
-            st.subheader(f"📘 {m['materia']}")
-        with col_top2:
-            if st.button("❌", key=f"del_{i}"):
-                st.session_state.materias.pop(i)
-                with open("data/materias.json", "w", encoding="utf-8") as f:
-                    json.dump(st.session_state.materias, f, indent=4, ensure_ascii=False)
-                st.rerun()
+            with col_top1:
+                st.subheader(f"📘 {m['materia']}")
 
-        st.write(f"👨‍🏫 {m['professor']}")
-        st.write(f"📅 {m['aulas_semana']} aulas/semana")
+            with col_top2:
+                if st.button("❌", key=f"del_{i}"):
+                    st.session_state.materias.pop(i)
+                    salvar_dados()
+                    st.rerun()
 
-        faltas = m["faltas"]
-        limite = m["limite"]
-        restantes = limite - faltas
+            st.write(f"👨‍🏫 {m['professor']}")
+            st.write(f"📅 {m['aulas_semana']} aulas/semana")
 
-        nova_falta = st.number_input(
-            "Faltas",
-            min_value=0,
-            value=faltas,
-            key=f"faltas_{i}"
-        )
+            faltas = m["faltas"]
+            limite = m["limite"]
 
-        if nova_falta != faltas:
-            st.session_state.materias[i]["faltas"] = nova_falta
-            with open("data/materias.json", "w", encoding="utf-8") as f:
-                json.dump(st.session_state.materias, f, indent=4, ensure_ascii=False)
-            st.rerun()
+           
+            st.number_input(
+                "Faltas",
+                min_value=0,
+                value=faltas,
+                key=f"faltas_{i}",
+                on_change=atualizar_falta,
+                args=(i,)
+            )
 
-        percentual = (nova_falta / limite) * 100 if limite > 0 else 0
+            faltas_atual = st.session_state.materias[i]["faltas"]
+            restantes = limite - faltas_atual
 
-        st.progress(min(percentual / 100, 1.0))
-        st.write(f"📊 {nova_falta} / {limite} faltas ({percentual:.1f}%)")
+            percentual = (faltas_atual / limite) * 100 if limite > 0 else 0
 
-        if nova_falta < limite * 0.7:
-            st.success("🟢 Tranquilo")
-        elif nova_falta < limite:
-            st.warning("🟡 Atenção!")
-        else:
-            st.error("🔴 Reprovado")
+            st.progress(min(percentual / 100, 1.0))
+            st.write(f"📊 {faltas_atual} / {limite} faltas ({percentual:.1f}%)")
 
-        if restantes > 0:
-            st.write(f"📉 Restam {int(restantes)} faltas")
-        else:
-            st.error("⚠️ Limite atingido!")
+            if faltas_atual < limite * 0.7:
+                st.success("🟢 Tranquilo")
+            elif faltas_atual < limite:
+                st.warning("🟡 Atenção!")
+            else:
+                st.error("🔴 Reprovado")
 
-        if restantes <= 2 and restantes > 0:
-            st.warning("⚠️ Cuidado! Quase no limite!")
+            if restantes > 0:
+                st.write(f"📉 Restam {int(restantes)} faltas")
+            else:
+                st.error("⚠️ Limite atingido!")
 
-        if m["aulas_semana"] > 0:
-            semanas_restantes = restantes / m["aulas_semana"]
-            st.caption(f"⏳ {semanas_restantes:.1f} semanas sem faltar")
+            if restantes <= 2 and restantes > 0:
+                st.warning("⚠️ Cuidado! Quase no limite!")
+
+            if m["aulas_semana"] > 0:
+                semanas_restantes = restantes / m["aulas_semana"]
+                st.caption(f"⏳ {semanas_restantes:.1f} semanas sem faltar")
 else:
     st.info("Nenhuma matéria cadastrada.")
+
 
 st.markdown("### 📊 Gráfico de Faltas")
 
