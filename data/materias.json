@@ -1,16 +1,9 @@
 [
     {
-        "materia": "Dados",
-        "professor": "Adriano",
+        "materia": "Introdução a Med Vet",
+        "professor": "Thays",
         "aulas_semana": 1,
-        "faltas": 6,
+        "faltas": 4,
         "limite": 8
-    },
-    {
-        "materia": "programação",
-        "professor": "clarissa",
-        "aulas_semana": 2,
-        "faltas": 7,
-        "limite": 16
     }
 ]

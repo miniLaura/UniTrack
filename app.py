@@ -8,6 +8,7 @@ st.set_page_config(page_title="UniTrack", layout="centered")
 st.markdown("---")
 st.caption("Sistema inteligente de controle de faltas acadêmicas")
 
+
 try:
     with open("data/materias.json", "r", encoding="utf-8") as f:
         materias_salvas = json.load(f)
@@ -33,7 +34,7 @@ def salvar_dados():
     with open("data/materias.json", "w", encoding="utf-8") as f:
         json.dump(st.session_state.materias, f, indent=4, ensure_ascii=False)
 
-
+# 🔥 atualização em tempo real
 def atualizar_falta(index):
     st.session_state.materias[index]["faltas"] = st.session_state[f"faltas_{index}"]
     salvar_dados()
@@ -111,7 +112,7 @@ if st.session_state.materias:
             faltas = m["faltas"]
             limite = m["limite"]
 
-           
+            
             st.number_input(
                 "Faltas",
                 min_value=0,
@@ -151,16 +152,6 @@ else:
     st.info("Nenhuma matéria cadastrada.")
 
 
-st.markdown("### 📊 Gráfico de Faltas")
-
-if st.session_state.materias:
-    df = pd.DataFrame(st.session_state.materias)
-
-    if not df.empty:
-        df_plot = df[["materia", "faltas", "limite"]].set_index("materia")
-        st.bar_chart(df_plot)
-else:
-    st.info("Adicione matérias para ver o gráfico.")
 
 st.markdown("---")
 st.caption("Desenvolvido para ajudar estudantes a evitarem reprovação por falta 📚")
