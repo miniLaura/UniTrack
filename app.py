@@ -34,7 +34,7 @@ def salvar_dados():
     with open("data/materias.json", "w", encoding="utf-8") as f:
         json.dump(st.session_state.materias, f, indent=4, ensure_ascii=False)
 
-# 🔥 atualização em tempo real
+
 def atualizar_falta(index):
     st.session_state.materias[index]["faltas"] = st.session_state[f"faltas_{index}"]
     salvar_dados()
