@@ -83,61 +83,61 @@ st.header("📚 Suas Matérias")
 
 if st.session_state.materias:
     for i, m in enumerate(st.session_state.materias):
-        col1, col2 = st.columns([4, 1])
+        with st.container(border=True):
+            col_top1, col_top2 = st.columns([5,1])
 
-        with col1:
+        with col_top1:
             st.subheader(f"📘 {m['materia']}")
-            st.write(f"👨‍🏫 Professor: {m['professor']}")
-            st.write(f"📅 Aulas por semana: {m['aulas_semana']}")
-
-            faltas = m["faltas"]
-            limite = m["limite"]
-            restantes = limite - faltas
-
-            nova_falta = st.number_input(
-                f"Faltas em {m['materia']}",
-                min_value=0,
-                value=faltas,
-                key=f"faltas_{i}"
-            )
-
-            if nova_falta != faltas:
-                st.session_state.materias[i]["faltas"] = nova_falta
-                with open("data/materias.json", "w", encoding="utf-8") as f:
-                    json.dump(st.session_state.materias, f, indent=4, ensure_ascii=False)
-                st.rerun()
-
-            percentual = (nova_falta / limite) * 100 if limite > 0 else 0
-            st.write(f"📈 Uso do limite: {percentual:.1f}%")
-            st.progress(min(percentual / 100, 1.0))
-
-            if nova_falta < limite * 0.7:
-                st.success("🟢 Tranquilo")
-            elif nova_falta < limite:
-                st.warning("🟡 Atenção! Você está chegando perto do limite de faltas.")
-            else:
-                st.error("🔴 Reprovado por falta!")
-
-            if restantes > 0:
-                st.write(f"📉 Restam {int(restantes)} faltas possíveis")
-            else:
-                st.error("⚠️ Limite atingido!")
-
-            if restantes <= 2 and restantes > 0:
-                st.warning("⚠️ Cuidado! Você está a poucas faltas de reprovar.")
-
-            if m["aulas_semana"] > 0:
-                semanas_restantes = restantes / m["aulas_semana"]
-                st.write(f"⏳ Aproximadamente {semanas_restantes:.1f} semanas restantes sem faltar")
-
-        with col2:
+        with col_top2:
             if st.button("❌", key=f"del_{i}"):
                 st.session_state.materias.pop(i)
-
                 with open("data/materias.json", "w", encoding="utf-8") as f:
                     json.dump(st.session_state.materias, f, indent=4, ensure_ascii=False)
-
                 st.rerun()
+
+        st.write(f"👨‍🏫 {m['professor']}")
+        st.write(f"📅 {m['aulas_semana']} aulas/semana")
+
+        faltas = m["faltas"]
+        limite = m["limite"]
+        restantes = limite - faltas
+
+        nova_falta = st.number_input(
+            "Faltas",
+            min_value=0,
+            value=faltas,
+            key=f"faltas_{i}"
+        )
+
+        if nova_falta != faltas:
+            st.session_state.materias[i]["faltas"] = nova_falta
+            with open("data/materias.json", "w", encoding="utf-8") as f:
+                json.dump(st.session_state.materias, f, indent=4, ensure_ascii=False)
+            st.rerun()
+
+        percentual = (nova_falta / limite) * 100 if limite > 0 else 0
+
+        st.progress(min(percentual / 100, 1.0))
+        st.write(f"📊 {nova_falta} / {limite} faltas ({percentual:.1f}%)")
+
+        if nova_falta < limite * 0.7:
+            st.success("🟢 Tranquilo")
+        elif nova_falta < limite:
+            st.warning("🟡 Atenção!")
+        else:
+            st.error("🔴 Reprovado")
+
+        if restantes > 0:
+            st.write(f"📉 Restam {int(restantes)} faltas")
+        else:
+            st.error("⚠️ Limite atingido!")
+
+        if restantes <= 2 and restantes > 0:
+            st.warning("⚠️ Cuidado! Quase no limite!")
+
+        if m["aulas_semana"] > 0:
+            semanas_restantes = restantes / m["aulas_semana"]
+            st.caption(f"⏳ {semanas_restantes:.1f} semanas sem faltar")
 else:
     st.info("Nenhuma matéria cadastrada.")
 
