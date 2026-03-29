@@ -136,7 +136,6 @@ else:
 
 
 
-
 st.markdown("### 📊 Gráfico de Faltas")
 
 if st.session_state.materias:
