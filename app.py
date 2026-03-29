@@ -71,6 +71,14 @@ if st.button("➕ Adicionar Matéria"):
     else:
         st.error("Preencha todos os campos!")
 
+if st.session_state.materias:
+    total_faltas = sum(m["faltas"] for m in st.session_state.materias)
+    total_limites = sum(m["limite"] for m in st.session_state.materias)
+
+    col1, col2 = st.columns(2)
+    col1.metric("Total de faltas", total_faltas)
+    col2.metric("Limite total", total_limites)
+
 st.header("📚 Suas Matérias")
 
 if st.session_state.materias:
@@ -81,15 +89,31 @@ if st.session_state.materias:
             st.subheader(f"📘 {m['materia']}")
             st.write(f"👨‍🏫 Professor: {m['professor']}")
             st.write(f"📅 Aulas por semana: {m['aulas_semana']}")
-            st.write(f"📊 Faltas: {m['faltas']} / {m['limite']}")
 
             faltas = m["faltas"]
             limite = m["limite"]
             restantes = limite - faltas
 
-            if faltas < limite * 0.7:
+            nova_falta = st.number_input(
+                f"Faltas em {m['materia']}",
+                min_value=0,
+                value=faltas,
+                key=f"faltas_{i}"
+            )
+
+            if nova_falta != faltas:
+                st.session_state.materias[i]["faltas"] = nova_falta
+                with open("data/materias.json", "w", encoding="utf-8") as f:
+                    json.dump(st.session_state.materias, f, indent=4, ensure_ascii=False)
+                st.rerun()
+
+            percentual = (nova_falta / limite) * 100 if limite > 0 else 0
+            st.write(f"📈 Uso do limite: {percentual:.1f}%")
+            st.progress(min(percentual / 100, 1.0))
+
+            if nova_falta < limite * 0.7:
                 st.success("🟢 Tranquilo")
-            elif faltas < limite:
+            elif nova_falta < limite:
                 st.warning("🟡 Atenção! Você está chegando perto do limite de faltas.")
             else:
                 st.error("🔴 Reprovado por falta!")
@@ -98,6 +122,13 @@ if st.session_state.materias:
                 st.write(f"📉 Restam {int(restantes)} faltas possíveis")
             else:
                 st.error("⚠️ Limite atingido!")
+
+            if restantes <= 2 and restantes > 0:
+                st.warning("⚠️ Cuidado! Você está a poucas faltas de reprovar.")
+
+            if m["aulas_semana"] > 0:
+                semanas_restantes = restantes / m["aulas_semana"]
+                st.write(f"⏳ Aproximadamente {semanas_restantes:.1f} semanas restantes sem faltar")
 
         with col2:
             if st.button("❌", key=f"del_{i}"):
