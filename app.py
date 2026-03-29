@@ -116,7 +116,7 @@ if st.session_state.materias:
             if faltas < limite * 0.7:
                 st.success("🟢 Tranquilo")
             elif faltas < limite:
-                st.warning("🟡 Atenção!")
+                st.warning("🟡 Atenção! Você está chegando perto do limite de faltas.")
             else:
                 st.error("🔴 Reprovado por falta!")
 
