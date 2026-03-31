@@ -89,7 +89,6 @@ if st.session_state.materias:
     col1.metric("Total de faltas", total_faltas)
     col2.metric("Limite total", total_limites)
 
-
 st.header("📚 Suas Matérias")
 
 if st.session_state.materias:
