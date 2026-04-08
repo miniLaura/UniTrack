@@ -3,8 +3,6 @@ import json
 import pandas as pd
 import os
 
-
-
 try:
     with open("data/materias.json", "r", encoding="utf-8") as f:
         materias_salvas = json.load(f)
@@ -16,8 +14,6 @@ if "materias" not in st.session_state:
 
 with open("data/regras_faculdade.json", "r", encoding="utf-8") as f:
     regras = json.load(f)
-
-
 
 st.set_page_config(page_title="UniTrack", layout="centered")
 
@@ -36,13 +32,11 @@ limite_percentual = regras[faculdade]["limite_faltas"] * 100
 st.write(f"📌 Limite de faltas dessa faculdade: {int(limite_percentual)}%")
 
 
-
 st.header("📘 Cadastro da Matéria")
 
 materia = st.text_input("Nome da matéria")
 professor = st.text_input("Professor")
 total_aulas = st.number_input("Total de aulas", min_value=1, step=1)
-
 
 
 st.header("❌ Registro de Faltas")
