@@ -23,14 +23,10 @@ st.set_page_config(page_title="UniTrack", layout="centered")
 
 st.title("🎓 UniTrack - Controle de Faltas Acadêmicas")
 
-
-
 st.header("👤 Dados do Aluno")
 nome = st.text_input("Nome do aluno")
 curso = st.text_input("Curso")
 periodo = st.text_input("Período")
-
-
 
 st.header("🏫 Faculdade")
 
