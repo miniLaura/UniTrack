@@ -92,7 +92,6 @@ if st.session_state.materias:
             limite = m["limite"]
             restantes = limite - faltas
 
-            # ALERTA INTELIGENTE
             if faltas < limite * 0.7:
                 st.success("🟢 Tranquilo")
             elif faltas < limite:
