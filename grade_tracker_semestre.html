@@ -833,13 +833,6 @@
 
     function boot() {
       load();
-      if (!state.disciplinas.length) {
-        state.disciplinas = [
-          novaDisciplina('Programação e Algoritmos II'),
-          novaDisciplina('Sistemas Operacionais'),
-          novaDisciplina('Álgebra Linear'),
-        ];
-      }
       hydrateInputs();
       renderDisciplinas();
       save();
