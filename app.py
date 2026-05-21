@@ -29,6 +29,6 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-html_path = Path(__file__).parent / "grade_tracker_semestre.html"
+html_path = Path(__file__).parent / "index.html"
 html = html_path.read_text(encoding="utf-8")
 components.html(html, height=1450, scrolling=True)
