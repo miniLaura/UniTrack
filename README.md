@@ -30,7 +30,6 @@ streamlit run app.py
 Para Streamlit Cloud, mantenha no repositório:
 
 - `app.py`
-- `grade_tracker_semestre.html`
+- `index.html`
 - `requirements.txt`
 
-Também existe o `index.html` caso queira subir como site estático no Vercel, Netlify ou GitHub Pages.
