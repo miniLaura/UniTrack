@@ -1,0 +1,762 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>UniTrack</title>
+  <style>
+    :root {
+      --bg: #070a12;
+      --bg2: #0b1020;
+      --card: rgba(17, 24, 39, .82);
+      --card2: rgba(15, 23, 42, .92);
+      --line: rgba(148, 163, 184, .18);
+      --text: #e5e7eb;
+      --muted: #94a3b8;
+      --muted2: #64748b;
+      --ok: #22c55e;
+      --warn: #f59e0b;
+      --bad: #ef4444;
+      --info: #38bdf8;
+      --violet: #a78bfa;
+      --shadow: 0 24px 70px rgba(0,0,0,.45);
+      --radius: 22px;
+    }
+    * { box-sizing: border-box; }
+    html { min-height: 100%; background: var(--bg); }
+    body {
+      margin: 0;
+      min-height: 100%;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at 20% 0%, rgba(56,189,248,.18), transparent 33%),
+        radial-gradient(circle at 80% 20%, rgba(167,139,250,.18), transparent 32%),
+        linear-gradient(135deg, #050816 0%, #0f172a 55%, #020617 100%);
+    }
+    button, input, select { font: inherit; }
+    #auth-screen {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 20px;
+    }
+    .auth-box {
+      width: min(420px, 100%);
+      border: 1px solid var(--line);
+      border-radius: 28px;
+      padding: 36px 32px;
+      background: linear-gradient(135deg, rgba(15,23,42,.97), rgba(2,6,23,.9));
+      box-shadow: var(--shadow);
+      position: relative;
+      overflow: hidden;
+    }
+    .auth-box::before {
+      content: "";
+      position: absolute;
+      inset: -1px;
+      background-image:
+        linear-gradient(rgba(148,163,184,.055) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(148,163,184,.055) 1px, transparent 1px);
+      background-size: 32px 32px;
+      mask-image: radial-gradient(circle at 50% 0%, black, transparent 65%);
+      pointer-events: none;
+    }
+    .auth-inner { position: relative; z-index: 1; }
+    .auth-brand { display: flex; align-items: center; gap: 12px; margin-bottom: 28px; }
+    .auth-logo {
+      width: 46px; height: 46px;
+      display: grid; place-items: center;
+      border-radius: 16px;
+      background: linear-gradient(135deg, rgba(56,189,248,.24), rgba(167,139,250,.26));
+      border: 1px solid rgba(255,255,255,.12);
+      font-size: 24px;
+    }
+    .auth-brand h1 { margin: 0; font-size: 28px; letter-spacing: -0.04em; }
+    .auth-tabs {
+      display: flex; gap: 4px;
+      background: rgba(2,6,23,.5);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 4px;
+      margin-bottom: 24px;
+    }
+    .auth-tab {
+      flex: 1; padding: 9px; border: 0; border-radius: 10px;
+      background: transparent; color: var(--muted);
+      cursor: pointer; font-size: 14px; font-weight: 700; transition: .16s ease;
+    }
+    .auth-tab.active {
+      background: linear-gradient(135deg, rgba(56,189,248,.2), rgba(167,139,250,.22));
+      color: var(--text); border: 1px solid rgba(255,255,255,.1);
+    }
+    .auth-field { margin-bottom: 14px; }
+    .auth-field label {
+      display: block; font-size: 11px; color: var(--muted2);
+      text-transform: uppercase; letter-spacing: .12em;
+      font-weight: 700; margin: 0 0 7px 2px;
+    }
+    .auth-field input {
+      width: 100%; color: var(--text);
+      background: rgba(2, 6, 23, .54);
+      border: 1px solid rgba(148, 163, 184, .22);
+      border-radius: 14px; padding: 12px 13px; outline: none; transition: .16s ease;
+    }
+    .auth-field input:focus {
+      border-color: rgba(56,189,248,.7);
+      box-shadow: 0 0 0 4px rgba(56,189,248,.12);
+    }
+    .auth-field input::placeholder { color: #475569; }
+    .auth-btn {
+      width: 100%; border: 0;
+      background: linear-gradient(135deg, #0ea5e9, #8b5cf6);
+      box-shadow: 0 14px 30px rgba(14,165,233,.18);
+      color: #fff; font-weight: 800; font-size: 15px;
+      border-radius: 14px; padding: 13px; cursor: pointer; transition: .16s ease; margin-top: 6px;
+    }
+    .auth-btn:hover { transform: translateY(-1px); opacity: .92; }
+    .auth-error {
+      margin-top: 12px; padding: 10px 13px; border-radius: 12px;
+      background: rgba(239,68,68,.12); border: 1px solid rgba(239,68,68,.24);
+      color: #fca5a5; font-size: 13px; display: none;
+    }
+    .auth-error.show { display: block; }
+    #app-screen { display: none; }
+    .app { width: min(1180px, calc(100% - 28px)); margin: 0 auto; padding: 30px 0 60px; }
+    .hero {
+      position: relative; overflow: hidden;
+      border: 1px solid var(--line); border-radius: 30px; padding: 28px;
+      background: linear-gradient(135deg, rgba(15,23,42,.95), rgba(2,6,23,.82));
+      box-shadow: var(--shadow); margin-bottom: 18px;
+    }
+    .hero::before {
+      content: ""; position: absolute; inset: -1px;
+      background-image:
+        linear-gradient(rgba(148,163,184,.055) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(148,163,184,.055) 1px, transparent 1px);
+      background-size: 32px 32px;
+      mask-image: radial-gradient(circle at 30% 20%, black, transparent 70%);
+      pointer-events: none;
+    }
+    .hero-content { position: relative; z-index: 1; }
+    .topline {
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 14px; flex-wrap: wrap; margin-bottom: 18px;
+    }
+    .brand { display: flex; align-items: center; gap: 12px; }
+    .logo {
+      width: 46px; height: 46px; display: grid; place-items: center;
+      border-radius: 16px;
+      background: linear-gradient(135deg, rgba(56,189,248,.24), rgba(167,139,250,.26));
+      border: 1px solid rgba(255,255,255,.12);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.13); font-size: 24px;
+    }
+    h1 { margin: 0; font-size: clamp(26px, 4vw, 42px); letter-spacing: -0.04em; line-height: 1; }
+    .badge {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 8px 12px; border-radius: 999px;
+      border: 1px solid rgba(56,189,248,.25); background: rgba(56,189,248,.08);
+      color: #bae6fd; font-size: 12px; white-space: nowrap;
+    }
+    .topline-right { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+    .user-pill {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 8px 12px; border-radius: 999px;
+      border: 1px solid rgba(167,139,250,.28); background: rgba(167,139,250,.09);
+      color: #ddd6fe; font-size: 12px; font-weight: 700;
+    }
+    .btn-logout {
+      padding: 7px 12px; border-radius: 10px;
+      border: 1px solid rgba(148,163,184,.2); background: rgba(15,23,42,.7);
+      color: var(--muted); font-size: 12px; cursor: pointer; transition: .16s ease;
+    }
+    .btn-logout:hover { border-color: rgba(239,68,68,.4); color: #fca5a5; background: rgba(127,29,29,.2); }
+    .save-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--ok); display: inline-block; transition: background .3s ease; }
+    .save-dot.saving { background: var(--warn); }
+    .profile-grid {
+      display: grid; grid-template-columns: 1.1fr 1.1fr .8fr auto auto;
+      gap: 10px; align-items: end; margin-top: 22px;
+    }
+    .field label {
+      display: block; font-size: 11px; color: var(--muted2);
+      text-transform: uppercase; letter-spacing: .12em; margin: 0 0 7px 2px; font-weight: 700;
+    }
+    input, select {
+      width: 100%; color: var(--text); background: rgba(2, 6, 23, .54);
+      border: 1px solid rgba(148, 163, 184, .22); border-radius: 14px;
+      padding: 12px 13px; outline: none; transition: .16s ease;
+    }
+    input:focus, select:focus { border-color: rgba(56,189,248,.7); box-shadow: 0 0 0 4px rgba(56,189,248,.12); }
+    input::placeholder { color: #475569; }
+    .btn {
+      border: 1px solid rgba(148, 163, 184, .2); color: var(--text);
+      background: rgba(15, 23, 42, .7); border-radius: 14px; padding: 12px 14px;
+      cursor: pointer; transition: .16s ease; white-space: nowrap; min-height: 45px;
+    }
+    .btn:hover { transform: translateY(-1px); border-color: rgba(56,189,248,.42); background: rgba(30, 41, 59, .82); }
+    .btn-primary { border: 0; background: linear-gradient(135deg, #0ea5e9, #8b5cf6); box-shadow: 0 14px 30px rgba(14,165,233,.18); font-weight: 800; }
+    .btn-danger:hover { border-color: rgba(239,68,68,.5); background: rgba(127,29,29,.26); }
+    .dash { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px; margin: 18px 0; }
+    .stat { border: 1px solid var(--line); border-radius: 20px; background: rgba(15, 23, 42, .72); padding: 17px; box-shadow: 0 12px 34px rgba(0,0,0,.16); }
+    .stat strong { display: block; font-size: 27px; line-height: 1; letter-spacing: -.04em; margin-bottom: 7px; }
+    .stat span { color: var(--muted); font-size: 12px; }
+    .toolbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 20px 0 14px; flex-wrap: wrap; }
+    .toolbar h2 { margin: 0; font-size: 17px; letter-spacing: -.02em; }
+    .toolbar-actions { display: flex; gap: 9px; flex-wrap: wrap; }
+    .disc-list { display: grid; gap: 14px; }
+    .disc-card {
+      border: 1px solid var(--line); border-radius: var(--radius);
+      background: linear-gradient(135deg, rgba(15,23,42,.90), rgba(2,6,23,.76));
+      box-shadow: 0 18px 50px rgba(0,0,0,.24); overflow: hidden;
+    }
+    .disc-head {
+      display: grid; grid-template-columns: 1.5fr 1fr 150px auto;
+      gap: 10px; padding: 16px; align-items: end;
+      border-bottom: 1px solid rgba(148,163,184,.12);
+    }
+    .disc-body { display: grid; grid-template-columns: 1.1fr .9fr 1fr; gap: 14px; padding: 16px; }
+    .panel { border: 1px solid rgba(148,163,184,.14); border-radius: 18px; background: rgba(2,6,23,.34); padding: 14px; min-height: 100%; }
+    .panel-title {
+      display: flex; align-items: center; justify-content: space-between; gap: 10px;
+      color: var(--muted); font-size: 12px; font-weight: 800;
+      text-transform: uppercase; letter-spacing: .11em; margin-bottom: 12px;
+    }
+    .grade-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 9px; }
+    .mini label { display: block; color: var(--muted2); font-size: 11px; font-weight: 800; margin: 0 0 6px 2px; }
+    .mini input { text-align: center; font-weight: 800; }
+    .status-pill {
+      display: inline-flex; align-items: center; justify-content: center;
+      gap: 7px; border-radius: 999px; padding: 8px 10px;
+      font-size: 12px; font-weight: 900; border: 1px solid transparent;
+    }
+    .pill-ok { color: #bbf7d0; background: rgba(34,197,94,.12); border-color: rgba(34,197,94,.24); }
+    .pill-warn { color: #fde68a; background: rgba(245,158,11,.12); border-color: rgba(245,158,11,.24); }
+    .pill-bad { color: #fecaca; background: rgba(239,68,68,.12); border-color: rgba(239,68,68,.24); }
+    .pill-info { color: #bae6fd; background: rgba(56,189,248,.12); border-color: rgba(56,189,248,.24); }
+    .pill-violet { color: #ddd6fe; background: rgba(167,139,250,.12); border-color: rgba(167,139,250,.24); }
+    .result-box {
+      margin-top: 10px; padding: 12px; border-radius: 16px;
+      background: rgba(15, 23, 42, .66); border: 1px solid rgba(148,163,184,.13);
+      color: var(--muted); font-size: 13px; line-height: 1.45;
+    }
+    .result-box b { color: var(--text); }
+    .result-box .ok { color: #86efac; }
+    .result-box .warn { color: #fcd34d; }
+    .result-box .bad { color: #fca5a5; }
+    .result-box .info { color: #7dd3fc; }
+    .progress-wrap { margin-top: 10px; height: 9px; border-radius: 999px; background: rgba(148,163,184,.14); overflow: hidden; }
+    .progress { height: 100%; width: 0; border-radius: 999px; background: linear-gradient(90deg, #22c55e, #38bdf8); transition: width .18s ease; }
+    .progress.warn { background: linear-gradient(90deg, #f59e0b, #f97316); }
+    .progress.bad { background: linear-gradient(90deg, #ef4444, #b91c1c); }
+    .empty { border: 1px dashed rgba(148,163,184,.3); border-radius: var(--radius); padding: 26px; text-align: center; color: var(--muted); background: rgba(15,23,42,.42); }
+    .hide { display: none; }
+    .footer-note { margin-top: 18px; color: var(--muted2); font-size: 12px; text-align: center; }
+    @media (max-width: 980px) {
+      .profile-grid { grid-template-columns: 1fr 1fr; }
+      .dash { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .disc-head { grid-template-columns: 1fr 1fr; }
+      .disc-body { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 620px) {
+      .app { width: min(100% - 18px, 1180px); padding-top: 12px; }
+      .hero { padding: 18px; border-radius: 24px; }
+      .profile-grid, .disc-head, .dash { grid-template-columns: 1fr; }
+      .grade-grid { grid-template-columns: 1fr; }
+      .toolbar-actions { width: 100%; }
+      .toolbar-actions .btn { flex: 1; }
+    }
+  </style>
+</head>
+<body>
+  <div id="auth-screen">
+    <div class="auth-box">
+      <div class="auth-inner">
+        <div class="auth-brand">
+          <div class="auth-logo">🎓</div>
+          <div>
+            <h1>UniTrack</h1>
+            <div style="color:var(--muted);font-size:13px;margin-top:3px">Notas &amp; Frequência</div>
+          </div>
+        </div>
+        <div class="auth-tabs">
+          <button class="auth-tab active" id="tab-login" onclick="switchTab('login')">Entrar</button>
+          <button class="auth-tab" id="tab-register" onclick="switchTab('register')">Criar conta</button>
+        </div>
+        <div id="form-login">
+          <div class="auth-field">
+            <label>Usuário</label>
+            <input id="login-user" type="text" placeholder="seu.usuario" autocomplete="username" onkeydown="if(event.key==='Enter')doLogin()" />
+          </div>
+          <div class="auth-field">
+            <label>Senha</label>
+            <input id="login-pass" type="password" placeholder="••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()" />
+          </div>
+          <button class="auth-btn" onclick="doLogin()">Entrar</button>
+        </div>
+        <div id="form-register" style="display:none">
+          <div class="auth-field">
+            <label>Nome completo</label>
+            <input id="reg-name" type="text" placeholder="Seu nome" autocomplete="name" />
+          </div>
+          <div class="auth-field">
+            <label>Usuário</label>
+            <input id="reg-user" type="text" placeholder="sem espaços, mín. 3 caracteres" autocomplete="username" />
+          </div>
+          <div class="auth-field">
+            <label>Senha</label>
+            <input id="reg-pass" type="password" placeholder="mín. 6 caracteres" autocomplete="new-password" onkeydown="if(event.key==='Enter')doRegister()" />
+          </div>
+          <button class="auth-btn" onclick="doRegister()">Criar conta</button>
+        </div>
+        <div class="auth-error" id="auth-error"></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="app-screen">
+    <main class="app">
+      <section class="hero">
+        <div class="hero-content">
+          <div class="topline">
+            <div class="brand">
+              <div class="logo">🎓</div>
+              <div><h1>UniTrack</h1></div>
+            </div>
+            <div class="topline-right">
+              <div class="badge">⚡ Média mínima: 60 / 100</div>
+              <div class="user-pill">
+                <span class="save-dot" id="save-dot"></span>
+                <span id="user-display-name"></span>
+              </div>
+              <button class="btn-logout" onclick="doLogout()">Sair</button>
+            </div>
+          </div>
+          <div class="profile-grid">
+            <div class="field">
+              <label>Aluno</label>
+              <input id="aluno" placeholder="Seu nome" oninput="setRootField('aluno', this.value)" />
+            </div>
+            <div class="field">
+              <label>Curso</label>
+              <input id="curso" placeholder="Seu curso" oninput="setRootField('curso', this.value)" />
+            </div>
+            <div class="field">
+              <label>Semestre</label>
+              <input id="semestre" placeholder="2026/1" oninput="setRootField('semestre', this.value)" />
+            </div>
+            <button class="btn btn-primary" onclick="addDisciplina()">+ Disciplina</button>
+            <button class="btn btn-danger" onclick="novoSemestre()">Novo semestre</button>
+          </div>
+        </div>
+      </section>
+      <section class="dash" id="dashboard"></section>
+      <section class="toolbar">
+        <h2>📚 Disciplinas</h2>
+        <div class="toolbar-actions">
+          <button class="btn" onclick="exportarDados()">⬇ Exportar JSON</button>
+          <label class="btn" style="cursor:pointer">
+            ⬆ Importar JSON
+            <input type="file" accept=".json" onchange="importarDados(event)" style="display:none" />
+          </label>
+        </div>
+      </section>
+      <section class="disc-list" id="disciplinas"></section>
+      <div class="footer-note">Regra usada: média = (N1 + N2 + N3) / 3. Para passar: média final ≥ 60 e não estourar o limite de faltas.</div>
+    </main>
+  </div>
+
+  <script>
+    const SESSION_KEY = 'unitrack:session';
+    let session = null;
+
+    function switchTab(tab) {
+      document.getElementById('form-login').style.display = tab === 'login' ? '' : 'none';
+      document.getElementById('form-register').style.display = tab === 'register' ? '' : 'none';
+      document.getElementById('tab-login').classList.toggle('active', tab === 'login');
+      document.getElementById('tab-register').classList.toggle('active', tab === 'register');
+      clearAuthError();
+    }
+
+    function showAuthError(msg) {
+      const el = document.getElementById('auth-error');
+      el.textContent = msg;
+      el.classList.add('show');
+    }
+
+    function clearAuthError() {
+      document.getElementById('auth-error').classList.remove('show');
+    }
+
+    async function doLogin() {
+      const username = document.getElementById('login-user').value.trim();
+      const password = document.getElementById('login-pass').value;
+      if (!username || !password) return showAuthError('Preencha usuário e senha.');
+      clearAuthError();
+      try {
+        const res = await fetch('/api/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, password }),
+        });
+        const data = await res.json();
+        if (!res.ok) return showAuthError(data.error || 'Erro ao entrar.');
+        session = { token: data.token, displayName: data.displayName };
+        localStorage.setItem(SESSION_KEY, JSON.stringify(session));
+        await bootApp();
+      } catch {
+        showAuthError('Erro de conexão. Verifique o servidor.');
+      }
+    }
+
+    async function doRegister() {
+      const displayName = document.getElementById('reg-name').value.trim();
+      const username = document.getElementById('reg-user').value.trim();
+      const password = document.getElementById('reg-pass').value;
+      if (!username || !password) return showAuthError('Preencha usuário e senha.');
+      clearAuthError();
+      try {
+        const res = await fetch('/api/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, password, displayName }),
+        });
+        const data = await res.json();
+        if (!res.ok) return showAuthError(data.error || 'Erro ao criar conta.');
+        document.getElementById('login-user').value = username;
+        document.getElementById('login-pass').value = password;
+        switchTab('login');
+        await doLogin();
+      } catch {
+        showAuthError('Erro de conexão. Verifique o servidor.');
+      }
+    }
+
+    async function doLogout() {
+      if (session) {
+        try {
+          await fetch('/api/logout', { method: 'POST', headers: { 'x-session-token': session.token } });
+        } catch {}
+      }
+      session = null;
+      localStorage.removeItem(SESSION_KEY);
+      document.getElementById('app-screen').style.display = 'none';
+      document.getElementById('auth-screen').style.display = 'flex';
+      document.getElementById('login-pass').value = '';
+    }
+
+    const REGRAS = {
+      mediaMinima: 60,
+      notaMaxima: 100,
+      frequencias: [
+        { aulasSemana: 1, creditos: 2, maxFaltas: 8 },
+        { aulasSemana: 2, creditos: 4, maxFaltas: 16 },
+        { aulasSemana: 3, creditos: 6, maxFaltas: 18 },
+      ],
+    };
+
+    let state = { aluno: '', curso: '', semestre: '', disciplinas: [] };
+    let saveTimer = null;
+
+    function uid() { return `${Date.now()}-${Math.random().toString(16).slice(2)}`; }
+
+    function novaDisciplina(nome = 'Nova disciplina') {
+      return { id: uid(), nome, professor: '', aulasSemana: 1, faltas: 0, notas: { n1: '', n2: '', n3: '' } };
+    }
+
+    function esc(value) {
+      return String(value ?? '').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'",'&#039;');
+    }
+
+    function num(value) {
+      if (value === '' || value === null || value === undefined) return null;
+      const n = Number(value);
+      if (Number.isNaN(n)) return null;
+      return Math.min(Math.max(n, 0), REGRAS.notaMaxima);
+    }
+
+    function getRegraFreq(aulasSemana) {
+      return REGRAS.frequencias.find(item => item.aulasSemana === Number(aulasSemana)) || REGRAS.frequencias[0];
+    }
+
+    function getDisciplina(id) { return state.disciplinas.find(disc => disc.id === id); }
+    function notasArray(disc) { return [num(disc.notas.n1), num(disc.notas.n2), num(disc.notas.n3)]; }
+
+    function calcDisciplina(disc) {
+      const notas = notasArray(disc);
+      const preenchidas = notas.filter(n => n !== null);
+      const faltantes = 3 - preenchidas.length;
+      const soma = preenchidas.reduce((a, n) => a + n, 0);
+      const mediaLancada = preenchidas.length ? soma / preenchidas.length : null;
+      const mediaFinal = preenchidas.length === 3 ? soma / 3 : null;
+      const precisaPorAvaliacao = faltantes > 0 ? (REGRAS.mediaMinima * 3 - soma) / faltantes : null;
+      const regraFreq = getRegraFreq(disc.aulasSemana);
+      const faltas = Number(disc.faltas || 0);
+      const faltasRestantes = regraFreq.maxFaltas - faltas;
+      const reprovadoFalta = faltas > regraFreq.maxFaltas;
+      let status = 'Sem notas', tipo = 'info';
+      if (reprovadoFalta) { status = 'Reprovado por falta'; tipo = 'bad'; }
+      else if (preenchidas.length === 3) {
+        status = mediaFinal >= REGRAS.mediaMinima ? 'Aprovado' : 'Reprovado por nota';
+        tipo = mediaFinal >= REGRAS.mediaMinima ? 'ok' : 'bad';
+      } else if (preenchidas.length > 0) {
+        if (precisaPorAvaliacao > REGRAS.notaMaxima) { status = 'Impossível fechar média'; tipo = 'bad'; }
+        else if (precisaPorAvaliacao <= 0) { status = 'Média garantida'; tipo = 'ok'; }
+        else if (precisaPorAvaliacao <= 60) { status = 'No caminho'; tipo = 'ok'; }
+        else if (precisaPorAvaliacao <= 80) { status = 'Atenção'; tipo = 'warn'; }
+        else { status = 'Risco alto'; tipo = 'bad'; }
+      }
+      return { notas, preenchidas, faltantes, soma, mediaLancada, mediaFinal, precisaPorAvaliacao, regraFreq, faltas, faltasRestantes, reprovadoFalta, status, tipo };
+    }
+
+    function fmtNota(v) {
+      if (v === null || v === undefined || Number.isNaN(v)) return '—';
+      return v.toFixed(1).replace('.', ',');
+    }
+
+    function setSaveDot(saving) {
+      const dot = document.getElementById('save-dot');
+      if (dot) dot.classList.toggle('saving', saving);
+    }
+
+    async function save() {
+      renderDashboard();
+      if (!session) return;
+      clearTimeout(saveTimer);
+      setSaveDot(true);
+      saveTimer = setTimeout(async () => {
+        try {
+          await fetch('/api/data', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'x-session-token': session.token },
+            body: JSON.stringify(state),
+          });
+        } catch {}
+        setSaveDot(false);
+      }, 600);
+    }
+
+    async function loadFromServer() {
+      try {
+        const res = await fetch('/api/data', { headers: { 'x-session-token': session.token } });
+        if (res.status === 401) { doLogout(); return false; }
+        const data = await res.json();
+        state = {
+          aluno: data.aluno || '',
+          curso: data.curso || '',
+          semestre: data.semestre || '',
+          disciplinas: Array.isArray(data.disciplinas) ? data.disciplinas : [],
+        };
+        return true;
+      } catch { return false; }
+    }
+
+    function setRootField(field, value) { state[field] = value; save(); }
+
+    function setDiscField(id, field, value) {
+      const disc = getDisciplina(id);
+      if (!disc) return;
+      if (field === 'faltas') disc.faltas = Math.max(0, Number(value || 0));
+      else if (field === 'aulasSemana') disc.aulasSemana = Number(value);
+      else disc[field] = value;
+      refreshDisciplina(id);
+      save();
+    }
+
+    function setNota(id, notaKey, value) {
+      const disc = getDisciplina(id);
+      if (!disc) return;
+      disc.notas[notaKey] = value === '' ? '' : num(value);
+      refreshDisciplina(id);
+      save();
+    }
+
+    function addDisciplina() { state.disciplinas.push(novaDisciplina()); renderDisciplinas(); save(); }
+
+    function removeDisciplina(id) { state.disciplinas = state.disciplinas.filter(d => d.id !== id); renderDisciplinas(); save(); }
+
+    function novoSemestre() {
+      if (!confirm('Isso limpa as disciplinas deste semestre. Exporte um backup se quiser guardar os dados anteriores.')) return;
+      state.disciplinas = [];
+      state.semestre = '';
+      document.getElementById('semestre').value = '';
+      renderDisciplinas();
+      save();
+    }
+
+    function exportarDados() {
+      const blob = new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `unitrack-${(state.semestre || 'semestre').replaceAll('/', '-')}.json`;
+      document.body.appendChild(a); a.click(); a.remove();
+      URL.revokeObjectURL(url);
+    }
+
+    function importarDados(event) {
+      const file = event.target.files?.[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = () => {
+        try {
+          const imported = JSON.parse(reader.result);
+          state = {
+            aluno: imported.aluno || '', curso: imported.curso || '',
+            semestre: imported.semestre || '',
+            disciplinas: Array.isArray(imported.disciplinas) ? imported.disciplinas : [],
+          };
+          hydrateInputs(); renderDisciplinas(); save();
+        } catch { alert('Arquivo inválido.'); }
+      };
+      reader.readAsText(file);
+      event.target.value = '';
+    }
+
+    function hydrateInputs() {
+      document.getElementById('aluno').value = state.aluno || '';
+      document.getElementById('curso').value = state.curso || '';
+      document.getElementById('semestre').value = state.semestre || '';
+    }
+
+    function renderDashboard() {
+      const total = state.disciplinas.length;
+      let aprovadas = 0, reprovadas = 0, andamento = 0, somaMedia = 0, qtdMedia = 0;
+      state.disciplinas.forEach(disc => {
+        const calc = calcDisciplina(disc);
+        if (calc.mediaFinal !== null) { somaMedia += calc.mediaFinal; qtdMedia++; }
+        if (calc.status === 'Aprovado') aprovadas++;
+        else if (calc.tipo === 'bad') reprovadas++;
+        else if (calc.preenchidas.length > 0) andamento++;
+      });
+      const mediaGeral = qtdMedia ? somaMedia / qtdMedia : null;
+      document.getElementById('dashboard').innerHTML = `
+        <div class="stat"><strong>${total}</strong><span>Disciplinas</span></div>
+        <div class="stat"><strong style="color:var(--ok)">${aprovadas}</strong><span>Aprovadas</span></div>
+        <div class="stat"><strong style="color:var(--warn)">${andamento}</strong><span>Em andamento</span></div>
+        <div class="stat"><strong style="color:var(--bad)">${reprovadas}</strong><span>Reprovadas/risco crítico</span></div>
+        <div class="stat"><strong>${fmtNota(mediaGeral)}</strong><span>Média final geral</span></div>
+      `;
+    }
+
+    function renderDisciplinas() {
+      const root = document.getElementById('disciplinas');
+      if (!state.disciplinas.length) {
+        root.innerHTML = `<div class="empty"><b>Nenhuma disciplina cadastrada.</b><br />Clique em <b>+ Disciplina</b> para começar o semestre.</div>`;
+        renderDashboard(); return;
+      }
+      root.innerHTML = state.disciplinas.map(disc => {
+        const regra = getRegraFreq(disc.aulasSemana);
+        return `
+          <article class="disc-card" id="disc-${disc.id}">
+            <div class="disc-head">
+              <div class="field"><label>Disciplina</label><input value="${esc(disc.nome)}" placeholder="Nome da disciplina" oninput="setDiscField('${disc.id}','nome',this.value)" /></div>
+              <div class="field"><label>Professor</label><input value="${esc(disc.professor||'')}" placeholder="Opcional" oninput="setDiscField('${disc.id}','professor',this.value)" /></div>
+              <div class="field"><label>Status</label><div id="status-${disc.id}"></div></div>
+              <button class="btn btn-danger" onclick="removeDisciplina('${disc.id}')">Excluir</button>
+            </div>
+            <div class="disc-body">
+              <div class="panel">
+                <div class="panel-title"><span>Notas</span><span>N1 + N2 + N3</span></div>
+                <div class="grade-grid">
+                  <div class="mini"><label>N1</label><input type="number" min="0" max="100" value="${esc(disc.notas.n1)}" placeholder="0–100" oninput="setNota('${disc.id}','n1',this.value)" /></div>
+                  <div class="mini"><label>N2</label><input type="number" min="0" max="100" value="${esc(disc.notas.n2)}" placeholder="0–100" oninput="setNota('${disc.id}','n2',this.value)" /></div>
+                  <div class="mini"><label>N3</label><input type="number" min="0" max="100" value="${esc(disc.notas.n3)}" placeholder="0–100" oninput="setNota('${disc.id}','n3',this.value)" /></div>
+                </div>
+                <div id="notas-${disc.id}"></div>
+              </div>
+              <div class="panel">
+                <div class="panel-title"><span>Frequência</span><span>mín. 75%</span></div>
+                <div class="field"><label>Aulas por semana</label>
+                  <select onchange="setDiscField('${disc.id}','aulasSemana',this.value)">
+                    ${REGRAS.frequencias.map(item => `<option value="${item.aulasSemana}" ${item.aulasSemana===regra.aulasSemana?'selected':''}>${item.aulasSemana} aula(s) — ${item.creditos} créditos</option>`).join('')}
+                  </select>
+                </div>
+                <div class="field" style="margin-top:10px"><label>Faltas lançadas</label><input type="number" min="0" value="${esc(disc.faltas||0)}" oninput="setDiscField('${disc.id}','faltas',this.value)" /></div>
+                <div id="freq-${disc.id}"></div>
+              </div>
+              <div class="panel">
+                <div class="panel-title"><span>Próximas avaliações</span><span>meta 60</span></div>
+                <div id="need-${disc.id}"></div>
+              </div>
+            </div>
+          </article>`;
+      }).join('');
+      state.disciplinas.forEach(disc => refreshDisciplina(disc.id));
+      renderDashboard();
+    }
+
+    function refreshDisciplina(id) {
+      const disc = getDisciplina(id);
+      if (!disc) return;
+      const calc = calcDisciplina(disc);
+      const statusEl = document.getElementById(`status-${id}`);
+      const notasEl = document.getElementById(`notas-${id}`);
+      const freqEl = document.getElementById(`freq-${id}`);
+      const needEl = document.getElementById(`need-${id}`);
+      if (!statusEl || !notasEl || !freqEl || !needEl) return;
+
+      statusEl.innerHTML = `<span class="status-pill pill-${calc.tipo}">${calc.status}</span>`;
+      notasEl.innerHTML = `
+        <div class="result-box">
+          <div>Média das notas lançadas: <b>${fmtNota(calc.mediaLancada)}</b></div>
+          <div>Média final oficial: <b>${calc.mediaFinal === null ? 'Aguardando N1, N2 e N3' : fmtNota(calc.mediaFinal)}</b></div>
+          <div>Soma atual: <b>${fmtNota(calc.soma)}</b> de 180 pontos necessários</div>
+        </div>`;
+
+      const pct = Math.min(100, Math.max(0, (calc.faltas / calc.regraFreq.maxFaltas) * 100));
+      const barClass = calc.reprovadoFalta ? 'bad' : pct >= 75 ? 'warn' : '';
+      const freqMsg = calc.reprovadoFalta
+        ? `<span class="bad"><b>Estourou o limite.</b> Máximo: ${calc.regraFreq.maxFaltas} faltas.</span>`
+        : `<span class="ok">Pode faltar mais <b>${calc.faltasRestantes}</b> vez(es).</span>`;
+      freqEl.innerHTML = `
+        <div class="result-box">
+          <div>Limite para ${calc.regraFreq.aulasSemana} aula(s)/semana: <b>${calc.regraFreq.maxFaltas} faltas</b></div>
+          <div>${freqMsg}</div>
+          <div class="progress-wrap"><div class="progress ${barClass}" style="width:${pct}%"></div></div>
+        </div>`;
+
+      let needHtml = '';
+      if (calc.preenchidas.length === 0) needHtml = `Lance a N1 para calcular quanto precisa tirar depois.`;
+      else if (calc.faltantes === 0) needHtml = calc.mediaFinal >= REGRAS.mediaMinima
+        ? `<span class="ok">Fechou. Média final <b>${fmtNota(calc.mediaFinal)}</b>.</span>`
+        : `<span class="bad">Não fechou. Média final <b>${fmtNota(calc.mediaFinal)}</b>.</span>`;
+      else if (calc.precisaPorAvaliacao > REGRAS.notaMaxima) needHtml = `<span class="bad">Com as notas atuais, precisaria tirar <b>${fmtNota(calc.precisaPorAvaliacao)}</b> em cada avaliação restante. Passou de 100, ficou impossível.</span>`;
+      else if (calc.precisaPorAvaliacao <= 0) needHtml = `<span class="ok">A média 60 já está garantida.</span>`;
+      else needHtml = `Faltam <b>${calc.faltantes}</b> avaliação(ões). Precisa tirar, em média, <b class="${calc.tipo==='bad'?'bad':calc.tipo==='warn'?'warn':'ok'}">${fmtNota(calc.precisaPorAvaliacao)}</b> em cada uma.`;
+
+      needEl.innerHTML = `
+        <div class="result-box">
+          ${needHtml}
+          <div style="margin-top:8px;color:var(--muted2)">Conta: (180 - soma atual) ÷ avaliações restantes.</div>
+        </div>`;
+    }
+
+    async function bootApp() {
+      const ok = await loadFromServer();
+      if (!ok) return;
+      document.getElementById('auth-screen').style.display = 'none';
+      document.getElementById('app-screen').style.display = 'block';
+      document.getElementById('user-display-name').textContent = session.displayName;
+      hydrateInputs();
+      renderDisciplinas();
+    }
+
+    async function init() {
+      try {
+        const saved = localStorage.getItem(SESSION_KEY);
+        if (saved) {
+          session = JSON.parse(saved);
+          const res = await fetch('/api/data', { headers: { 'x-session-token': session.token } });
+          if (res.ok) { await bootApp(); return; }
+          session = null;
+          localStorage.removeItem(SESSION_KEY);
+        }
+      } catch {}
+      document.getElementById('auth-screen').style.display = 'flex';
+    }
+
+    init();
+  </script>
+</body>
+</html>
